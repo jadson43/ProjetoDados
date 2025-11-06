@@ -34,7 +34,36 @@
 }
 
 .card {
-  padding: 2em;
+  padding: 2rem;
+  max-width: 420px;
+  margin: 2rem auto;
+  background: rgb(169, 4, 35);
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(2,6,23,0.6);
+  color: inherit;
+  text-align: center;
+}
+
+.card h2 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+
+.card input {
+  width: 100%;
+  padding: 0.65rem 0.75rem;
+  margin: 0.45rem 0;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.02);
+  color: inherit;
+  box-sizing: border-box;
+}
+
+.card button {
+  width: 100%;
+  padding: 0.7rem 1rem;
+  margin-top: 0.6rem;
 }
 
 .read-the-docs {

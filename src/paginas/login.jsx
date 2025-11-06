@@ -5,14 +5,14 @@ function Login() {
   const navigate = useNavigate();
 
   return (
-    <div>
+    <div className="card">
       <h2>Página de Login</h2>
-      <form>
-        <input type="text" placeholder="Usuário" /><br />
-        <input type="password" placeholder="Senha" /><br />
-        <button onClick={()=> navigate('/painel')}type="submit">Entrar</button>
+      <form onSubmit={(e) => e.preventDefault()}>
+        <input type="text" placeholder="Usuário" />
+        <input type="password" placeholder="Senha" />
+        <button type="button" onClick={() => navigate('/painel')}>Entrar</button>
       </form>
-     <button onClick={() => navigate('/')}>Voltar</button>
+      <button type="button" onClick={() => navigate('/')}>Voltar</button>
     </div>
   );
 }

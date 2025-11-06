@@ -5,16 +5,16 @@ function Cadastro() {
   const navigate = useNavigate();
 
   return (
-    <div>
+    <div className="card">
       <h2>Página de Cadastro</h2>
-      <form>
-        <input type="text" placeholder="CPF" /><br />
-        <input type="text" placeholder="Nome de Usuário" /><br />
-        <input type="email" placeholder="Email" /><br />
-        <input type="password" placeholder="Senha" /><br />
-        <button type="submit">Cadastrar</button>
+      <form onSubmit={(e) => e.preventDefault()}>
+        <input type="text" placeholder="CPF" />
+        <input type="text" placeholder="Nome de Usuário" />
+        <input type="email" placeholder="Email" />
+        <input type="password" placeholder="Senha" />
+        <button type="button">Cadastrar</button>
       </form>
-      <button onClick={() => navigate('/')}>Voltar</button>
+      <button type="button" onClick={() => navigate('/')}>Voltar</button>
     </div>
   );
 }
