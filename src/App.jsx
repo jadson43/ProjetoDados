@@ -9,11 +9,17 @@ function Navigation() {
   const navigate = useNavigate();
 
   return (
-    <div>
-      <h2 className="reveal">Bem vindo ao nosso sistema de barbearias</h2>
-      <button className="reveal" data-revealdelay="120ms" onClick={() => navigate('/login')}>Login</button><br />
-      <button className="reveal" data-revealdelay="240ms" onClick={() => navigate('/cadastro')}>Cadastrar</button>
-    </div>
+    <main className="hero">
+      <div className="hero-content">
+        <h1 className="hero-title reveal">Bem-vindo ao Rustic Cut</h1>
+        <p className="hero-lead reveal" data-revealdelay="80ms">Agende serviços, gerencie clientes e organize o dia a dia com velocidade e simplicidade.</p>
+
+        <div className="cta-group reveal" data-revealdelay="160ms">
+          <button className="btn btn-primary" onClick={() => navigate('/login')}>Entrar</button>
+          <button className="btn btn-primary" onClick={() => navigate('/cadastro')}>Criar conta</button>
+        </div>
+      </div>
+    </main>
   );
 }
 
