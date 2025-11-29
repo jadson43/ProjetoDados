@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import fallbackShops from '../assets/shops.json'
+import { api } from '../../server/api'
 
 const PAGE_SIZE = 5;
 
@@ -11,66 +11,118 @@ function ShopsList({ onView }) {
   const [hasMore, setHasMore] = useState(true);
   const [error, setError] = useState(null);
   const sentinelRef = useRef(null);
+  const loadingRef = useRef(false); // Previne múltiplas chamadas simultâneas
 
   useEffect(() => {
-    // load first page
     loadPage(1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     const el = sentinelRef.current;
-    if (!el) return;
+    if (!el || !hasMore || loading) return;
+    
     const io = new IntersectionObserver((entries) => {
       for (const entry of entries) {
-        if (entry.isIntersecting && !loading && hasMore) {
+        if (entry.isIntersecting && !loadingRef.current && hasMore) {
           loadPage(page + 1);
         }
       }
     }, { root: null, rootMargin: '200px', threshold: 0.1 });
+    
     io.observe(el);
     return () => io.disconnect();
-  }, [sentinelRef, loading, hasMore, page]);
+  }, [page, hasMore, loading]);
 
   async function loadPage(nextPage) {
-    if (loading) return;
+    // Previne carregamentos duplicados
+    if (loadingRef.current || loading || !hasMore) {
+      console.log('⚠️ Carregamento ignorado - loading:', loading, 'hasMore:', hasMore);
+      return;
+    }
+    
+    // Previne carregar a mesma página duas vezes
+    if (nextPage <= page && page !== 0) {
+      console.log('⚠️ Página já carregada:', nextPage);
+      return;
+    }
+    
+    console.log(`🔵 Carregando página ${nextPage}...`);
+    loadingRef.current = true;
     setLoading(true);
     setError(null);
+    
     try {
-      let data = null;
-      try {
-        const res = await fetch(`/api/shops?page=${nextPage}&limit=${PAGE_SIZE}`);
-        if (res.ok) {
-          data = await res.json();
-        }
-      } catch (e) {
-        // network error -> will fallback
-      }
-
-      if (!data) {
-        // fallback to local JSON (simulate pagination)
-        const start = (nextPage - 1) * PAGE_SIZE;
-        data = fallbackShops.slice(start, start + PAGE_SIZE);
-      }
+      let data = await api.getEstablishments(nextPage, PAGE_SIZE);
+      console.log('✅ Dados recebidos:', data);
 
       if (!data || data.length === 0) {
+        console.log('⚠️ Nenhum dado retornado - fim da lista');
         setHasMore(false);
-      } else {
-        setShops((prev) => [...prev, ...data]);
-        setPage(nextPage);
-        if (data.length < PAGE_SIZE) setHasMore(false);
+        return;
+      }
+
+      // Mapeia os dados
+      data = data.map(shop => ({
+        ...shop,
+        name: shop.name ?? shop.nome ?? "Sem nome",
+        address: shop.address ?? shop.cidade ?? "Sem endereço",
+        rating: shop.rating ?? shop.rating_avg ?? 0,
+        ratingCount: shop.ratingCount ?? shop.rating_count ?? 0,
+        fullAddress: {
+          rua: shop.fullAddress?.rua ?? shop.rua ?? "",
+          cidade: shop.fullAddress?.cidade ?? shop.cidade ?? "",
+          estado: shop.fullAddress?.estado ?? shop.stado ?? "",
+          cep: shop.fullAddress?.cep ?? shop.cep ?? ""
+        }
+      }));
+
+      console.log('✅ Dados processados:', data);
+      
+      // Previne adicionar estabelecimentos duplicados
+      setShops(prev => {
+        const existingIds = new Set(prev.map(s => s.id));
+        const newShops = data.filter(s => !existingIds.has(s.id));
+        
+        if (newShops.length === 0) {
+          console.log('⚠️ Todos os estabelecimentos já existem - fim da lista');
+          setHasMore(false);
+          return prev;
+        }
+        
+        console.log(`🔧 Adicionando ${newShops.length} novos estabelecimentos`);
+        return [...prev, ...newShops];
+      });
+      
+      setPage(nextPage);
+      
+      // Se retornou menos que PAGE_SIZE, não há mais páginas
+      if (data.length < PAGE_SIZE) {
+        console.log('⚠️ Menos dados que PAGE_SIZE, sem mais páginas');
+        setHasMore(false);
       }
     } catch (err) {
-      setError('Erro ao carregar barbearias');
+      console.error('❌ Erro ao carregar barbearias:', err);
+      setError(`Erro ao carregar: ${err.message}`);
+      setHasMore(false); // Para de tentar carregar em caso de erro
     } finally {
       setLoading(false);
+      loadingRef.current = false;
+      console.log('✅ Carregamento finalizado');
     }
   }
 
   return (
     <section className="shops-section">
       <h3 className="shops-title">Barbearias disponíveis</h3>
+      
+      {error && <div className="loader error">{error}</div>}
+      
       <div className="shops-list" role="list">
+        {shops.length === 0 && !loading && !error && (
+          <div className="loader">Nenhuma barbearia encontrada</div>
+        )}
+        
         {shops.map((s) => (
           <div key={s.id}>
             <article
@@ -84,38 +136,64 @@ function ShopsList({ onView }) {
                 <p className="shop-address">{s.address}</p>
               </div>
               <div className="shop-meta">
-                <div className="shop-rating">⭐ {s.rating}</div>
+                <div className="shop-rating">
+                  ⭐ {Number(s.rating).toFixed(1)} 
+                  {s.ratingCount > 0 && (
+                    <span style={{ fontSize: '0.85em', color: '#6b7280' }}>
+                      {' '}({s.ratingCount})
+                    </span>
+                  )}
+                </div>
               </div>
             </article>
 
             <div className={`shop-details ${expandedId === s.id ? 'open' : ''}`}>
               <div className="shop-details-inner">
                 <div className="shop-photos">
-                  {/* Placeholder para imagens */}
                   <div className="photo-placeholder" />
                 </div>
                 <div className="shop-desc">
-                  <p><strong>Sobre:</strong> Espaço para descrição detalhada da barbearia, serviços oferecidos e horários.</p>
-                  <p><strong>Serviços:</strong> Corte, Barba, Sobrancelha, Tratamentos.</p>
+                  {s.description ? (
+                    <p><strong>Sobre:</strong> {s.description}</p>
+                  ) : (
+                    <p><strong>Sobre:</strong> Barbearia de qualidade com profissionais experientes.</p>
+                  )}
+                  {s.phone && (
+                    <p><strong>Telefone:</strong> {s.phone}</p>
+                  )}
+                  {s.fullAddress && (
+                    <p>
+                      <strong>Endereço completo:</strong> {s.fullAddress.rua}, {s.fullAddress.cidade} - {s.fullAddress.estado}, CEP: {s.fullAddress.cep}
+                    </p>
+                  )}
+                  <button 
+                    className="btn btn-primary" 
+                    style={{ marginTop: '0.5rem' }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onView(s);
+                    }}
+                  >
+                    Ver mais detalhes
+                  </button>
                 </div>
               </div>
             </div>
           </div>
         ))}
-        <div ref={sentinelRef} />
+        
+        {/* Sentinel só aparece quando há mais itens */}
+        {hasMore && <div ref={sentinelRef} style={{ height: '1px' }} />}
       </div>
+      
       {loading && <div className="loader">Carregando...</div>}
-      {error && <div className="loader error">{error}</div>}
-      {!hasMore && <div className="loader">Fim da lista</div>}
     </section>
   );
 }
 
 function PainelCliente() {
   function handleView(shop) {
-    // placeholder: in a real app you'd navigate or open details
-    // console.log(shop);
-    alert(`Abrindo: ${shop.name}`);
+    alert(`Abrindo detalhes de: ${shop.name}\n\nEndereço: ${shop.address}\nAvaliação: ${shop.rating}`);
   }
 
   return (

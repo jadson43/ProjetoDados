@@ -56,5 +56,16 @@ export const api = {
     });
     if (!response.ok) throw new Error('Erro ao deletar usuário');
     return response.json();
+  },
+  async getEstablishments(page = 1, limit = 5) {
+    const response = await fetch(`${API_BASE_URL}/establishments?page=${page}&limit=${limit}`);
+    if (!response.ok) throw new Error('Erro ao buscar estabelecimentos');
+    return response.json();
+  },
+
+  async getEstablishmentById(id) {
+    const response = await fetch(`${API_BASE_URL}/establishments/${id}`);
+    if (!response.ok) throw new Error('Erro ao buscar estabelecimento');
+    return response.json();
   }
 };
