@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { api } from '../../server/api'
+import UserBar from './UserBar';
 
 const PAGE_SIZE = 5;
 
@@ -113,6 +114,7 @@ function ShopsList({ onView }) {
   }
 
   return (
+    
     <section className="shops-section">
       <h3 className="shops-title">Barbearias disponíveis</h3>
       
@@ -197,10 +199,13 @@ function PainelCliente() {
   }
 
   return (
+    <>
+    <UserBar />
     <main style={{ padding: '2rem' }}>
       <h2>Painel do Cliente</h2>
       <ShopsList onView={handleView} />
     </main>
+    </>
   );
 }
 
