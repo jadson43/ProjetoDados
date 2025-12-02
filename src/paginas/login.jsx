@@ -30,7 +30,13 @@ function Login() {
       localStorage.setItem('usuario', JSON.stringify(response.usuario));
       
       alert('Login realizado com sucesso!');
-      navigate('/painel');
+      
+      // Redireciona baseado no role do usuário
+      if (response.usuario.role === 'ADM_Estabelecimento') {
+        navigate('/painel-admin');
+      } else {
+        navigate('/painel');
+      }
     } catch (error) {
       setErro(error.message || 'Erro ao fazer login. Tente novamente.');
       console.error(error);

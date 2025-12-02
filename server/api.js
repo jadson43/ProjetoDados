@@ -3,11 +3,12 @@ const API_BASE_URL = import.meta.env.PROD
   : '/api';
 
 export const api = {
-  // Usuários - Criar usuário COM foto
+  // ============= USUÁRIOS =============
+  
   async createUserWithPhoto(formData) {
     const response = await fetch(`${API_BASE_URL}/usuarios`, {
       method: 'POST',
-      body: formData // FormData já tem o Content-Type correto
+      body: formData
     });
     
     if (!response.ok) {
@@ -18,7 +19,6 @@ export const api = {
     return response.json();
   },
 
-  // Usuários - Criar usuário SEM foto (método antigo mantido para compatibilidade)
   async createUser(userData) {
     const response = await fetch(`${API_BASE_URL}/usuarios`, {
       method: 'POST',
@@ -46,7 +46,6 @@ export const api = {
     return response.json();
   },
 
-  // Autenticação (login)
   async login(credentials) {
     const response = await fetch(`${API_BASE_URL}/login`, {
       method: 'POST',
@@ -62,7 +61,6 @@ export const api = {
     return response.json();
   },
 
-  // Atualizar usuário COM foto
   async updateUserWithPhoto(id, formData) {
     const response = await fetch(`${API_BASE_URL}/usuarios/${id}`, {
       method: 'PUT',
@@ -77,7 +75,6 @@ export const api = {
     return response.json();
   },
 
-  // Atualizar usuário SEM foto (método antigo)
   async updateUser(id, userData) {
     const response = await fetch(`${API_BASE_URL}/usuarios/${id}`, {
       method: 'PUT',
@@ -106,6 +103,8 @@ export const api = {
     return response.json();
   },
 
+  // ============= ESTABELECIMENTOS =============
+
   async getEstablishments(page = 1, limit = 5) {
     const response = await fetch(`${API_BASE_URL}/establishments?page=${page}&limit=${limit}`);
     if (!response.ok) throw new Error('Erro ao buscar estabelecimentos');
@@ -117,8 +116,52 @@ export const api = {
     if (!response.ok) throw new Error('Erro ao buscar estabelecimento');
     return response.json();
   },
+
+  async createEstablishment(establishmentData) {
+    const response = await fetch(`${API_BASE_URL}/establishments`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(establishmentData)
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.erro || 'Erro ao criar estabelecimento');
+    }
+    
+    return response.json();
+  },
+
+  async updateEstablishment(id, establishmentData) {
+    const response = await fetch(`${API_BASE_URL}/establishments/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(establishmentData)
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.erro || 'Erro ao atualizar estabelecimento');
+    }
+    
+    return response.json();
+  },
+
+  async deleteEstablishment(id) {
+    const response = await fetch(`${API_BASE_URL}/establishments/${id}`, {
+      method: 'DELETE'
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.erro || 'Erro ao deletar estabelecimento');
+    }
+    
+    return response.json();
+  },
   
-  // Helper para obter URL completa da foto
+  // ============= HELPERS =============
+  
   getPhotoUrl(photoPath) {
     if (!photoPath) return null;
     if (photoPath.startsWith('http')) return photoPath;

@@ -4,6 +4,7 @@ import './App.css'
 import Cadastro from './paginas/cadastro'
 import Login from './paginas/login'
 import PainelCliente from './paginas/painelCliente'
+import PainelAdmin from './paginas/PainelAdmin'
 
 function Navigation() {
   const navigate = useNavigate();
@@ -64,10 +65,10 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/cadastro" element={<Cadastro />} />
         <Route path="/painel" element={<PainelCliente />} />
+        <Route path="/painel-admin" element={<PainelAdmin />} />
       </Routes>
     </Router>
   );
 }
-
 
 export default App

@@ -79,28 +79,86 @@
 }
 .shop-card {
   display: flex;
-  justify-content: space-between;
+  gap: 1rem;
   align-items: center;
   padding: 1.1rem 1.25rem;
-  min-height: 76px;
+  min-height: 100px;
   background: chocolate;
   border: 1px solid rgba(15,23,36,0.06);
   border-radius: 14px;
   box-shadow: 0 6px 16px rgba(2,6,23,0.04);
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
+.shop-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(2,6,23,0.08);
+}
+
+/* Imagem do estabelecimento no card */
+.shop-image {
+  width: 80px;
+  height: 80px;
+  min-width: 80px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+  border: 2px solid rgba(255,255,255,0.8);
+  box-shadow: 0 2px 8px rgba(15,23,36,0.1);
+  position: relative;
+}
+
+.shop-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.shop-image-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9ca3af;
+  background: linear-gradient(135deg, rgba(230,230,230,0.8), rgba(210,210,210,0.6));
+}
+
 .shop-info {
   display: flex;
   flex-direction: column;
+  flex: 1;
+  text-align: left;
 }
-.shop-name { margin: 0; font-size: 1.08rem; }
-.shop-address { margin: 0; color: var black; font-size: 0.98rem; }
-.shop-meta { display: flex; gap: 0.75rem; align-items: center; }
-.shop-rating { color: var black; font-size: 1rem; }
-.shop-actions .btn { padding: 0.5rem 0.9rem; font-size: 0.95rem; }
+.shop-name { 
+  margin: 0; 
+  font-size: 1.08rem;
+  font-weight: 600;
+}
+.shop-address { 
+  margin: 0; 
+  color: var(--text); 
+  font-size: 0.98rem; 
+  opacity: 0.8;
+}
+.shop-meta { 
+  display: flex; 
+  gap: 0.75rem; 
+  align-items: center; 
+}
+.shop-rating { 
+  color: var(--text); 
+  font-size: 1rem;
+  font-weight: 500;
+}
+.shop-actions .btn { 
+  padding: 0.5rem 0.9rem; 
+  font-size: 0.95rem; 
+}
 
-/* Custom scrollbar: thin, rounded thumb with subtle gradient */
+/* Custom scrollbar */
 .shops-list {
-  /* Firefox */
   scrollbar-width: thin;
   scrollbar-color: rgba(15,23,36,0.18) transparent;
 }
@@ -119,7 +177,7 @@
   transform: scale(0.98);
 }
 
-/* Expanded details under each shop card */
+/* Expanded details */
 .shop-details {
   max-height: 0;
   overflow: hidden;
@@ -127,7 +185,7 @@
   opacity: 0;
 }
 .shop-details.open {
-  max-height: 360px; /* large enough to show content */
+  max-height: 360px;
   opacity: 1;
   margin-bottom: 8px;
 }
@@ -143,21 +201,31 @@
 }
 .shop-photos {
   width: 160px;
-  height: 100%;
-  min-height: 100px;
+  height: 120px;
+  min-width: 160px;
   background: linear-gradient(180deg, rgba(230,230,230,0.6), rgba(210,210,210,0.4));
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
+  position: relative;
 }
 .photo-placeholder {
-  width: 140px;
-  height: 80px;
+  width: 100%;
+  height: 100%;
   border-radius: 6px;
   background: repeating-linear-gradient(45deg, rgba(0,0,0,0.03) 0 6px, rgba(255,255,255,0.02) 6px 12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9ca3af;
 }
-.shop-desc { color: var(--muted); font-size: 0.95rem; }
+.shop-desc { 
+  color: var(--muted); 
+  font-size: 0.95rem;
+  flex: 1;
+}
 
 .loader {
   margin-top: 0.9rem;
@@ -233,4 +301,31 @@
 
 .read-the-docs {
   color: #888;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .shop-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .shop-image {
+    width: 100%;
+    height: 120px;
+  }
+  
+  .shop-meta {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .shop-details-inner {
+    flex-direction: column;
+  }
+  
+  .shop-photos {
+    width: 100%;
+    height: 180px;
+  }
 }
