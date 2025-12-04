@@ -187,6 +187,26 @@ export const api = {
     
     return response.json();
   },
+  async createAgenda(agendaData) {
+    const response = await fetch(`${API_BASE_URL}/agendamentos`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(agendaData)
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.erro || 'Erro ao criar agendamento');
+    }
+    
+    return response.json();
+  },
+
+  async getAgendamentos(usuarioId) {
+    const response = await fetch(`${API_BASE_URL}/agendamentos?usuario_id=${usuarioId}`);
+    if (!response.ok) throw new Error('Erro ao buscar agendamentos');
+    return response.json();
+  },
   
   // ============= HELPERS =============
   

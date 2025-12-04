@@ -4,6 +4,14 @@ import UserBar from './UserBar';
 
 const PAGE_SIZE = 10;
 
+const PLANOS = {
+  '1': 'Corte Simples',
+  '2': 'Corte + Barba',
+  '3': 'Pacote Premium'
+};
+
+const getNomePlano = (planoId) => PLANOS[String(planoId)] || `Plano ${planoId}`;
+
 function ShopsList({ onView }) {
   const [shops, setShops] = useState([]);
   const [expandedId, setExpandedId] = useState(null);
@@ -235,17 +243,432 @@ function ShopsList({ onView }) {
   );
 }
 
+function BookingModal({ isOpen, onClose, onSubmit }) {
+  const [formData, setFormData] = useState({
+    estabelecimento_id: '',
+    plano_id: '1',
+    proximo_pag: '',
+    status: 'ativo'
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [estabelecimentos, setEstabelecimentos] = useState([]);
+  const [loadingEstabs, setLoadingEstabs] = useState(false);
+
+  useEffect(() => {
+    if (isOpen && estabelecimentos.length === 0) {
+      loadEstablishments();
+    }
+  }, [isOpen]);
+
+  async function loadEstablishments() {
+    setLoadingEstabs(true);
+    try {
+      const data = await api.getEstablishments(1, 100);
+      setEstabelecimentos(data || []);
+    } catch (err) {
+      console.error('Erro ao carregar estabelecimentos:', err);
+      setEstabelecimentos([]);
+    } finally {
+      setLoadingEstabs(false);
+    }
+  }
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    try {
+      if (!formData.estabelecimento_id) {
+        throw new Error('Selecione um estabelecimento');
+      }
+      if (!formData.proximo_pag) {
+        throw new Error('Escolha uma data/hora');
+      }
+
+      await onSubmit(formData);
+      setFormData({
+        estabelecimento_id: '',
+        plano_id: '1',
+        proximo_pag: '',
+        status: 'ativo'
+      });
+      onClose();
+    } catch (err) {
+      setError(err.message || 'Erro ao agendar');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(0,0,0,0.5)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 1000
+    }}>
+      <div style={{
+        backgroundColor: 'var(--surface)',
+        borderRadius: '12px',
+        padding: '2rem',
+        maxWidth: '500px',
+        width: '90%',
+        maxHeight: '80vh',
+        overflowY: 'auto',
+        boxShadow: '0 20px 50px rgba(0,0,0,0.15)'
+      }}>
+        <h3 style={{ marginTop: 0, color: 'var(--text)' }}>Novo Agendamento</h3>
+        
+        {error && <p style={{ color: 'crimson', marginBottom: '1rem' }}>{error}</p>}
+
+        <form onSubmit={handleSubmit}>
+          <div style={{ marginBottom: '1rem' }}>
+            <label htmlFor="estabelecimento_id" style={{ display: 'block', marginBottom: '0.25rem', color: 'var(--muted)', fontSize: '0.9rem' }}>
+              Estabelecimento
+            </label>
+            <select
+              id="estabelecimento_id"
+              name="estabelecimento_id"
+              value={formData.estabelecimento_id}
+              onChange={handleChange}
+              style={{
+                width: '100%',
+                padding: '0.6rem',
+                border: '1px solid #e6eef2',
+                borderRadius: '8px',
+                backgroundColor: 'white',
+                color: 'var(--text)',
+                fontSize: '1rem',
+                boxSizing: 'border-box'
+              }}
+              required
+              disabled={loadingEstabs}
+            >
+              <option value="">
+                {loadingEstabs ? 'Carregando...' : 'Selecione um estabelecimento'}
+              </option>
+              {estabelecimentos.map((est) => (
+                <option key={est.id} value={est.id}>
+                  {est.nome || est.name || `Estabelecimento ${est.id}`}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div style={{ marginBottom: '1rem' }}>
+            <label htmlFor="plano_id" style={{ display: 'block', marginBottom: '0.25rem', color: 'var(--muted)', fontSize: '0.9rem' }}>
+              Plano
+            </label>
+            <select
+              id="plano_id"
+              name="plano_id"
+              value={formData.plano_id}
+              onChange={handleChange}
+              style={{
+                width: '100%',
+                padding: '0.6rem',
+                border: '1px solid #e6eef2',
+                borderRadius: '8px',
+                backgroundColor: 'white',
+                color: 'var(--text)',
+                fontSize: '1rem',
+                boxSizing: 'border-box'
+              }}
+            >
+              <option value="1">Corte Simples</option>
+              <option value="2">Corte + Barba</option>
+              <option value="3">Pacote Premium</option>
+            </select>
+          </div>
+
+          <div style={{ marginBottom: '1rem' }}>
+            <label htmlFor="proximo_pag" style={{ display: 'block', marginBottom: '0.25rem', color: 'var(--muted)', fontSize: '0.9rem' }}>
+              Data e Hora
+            </label>
+            <input
+              id="proximo_pag"
+              type="datetime-local"
+              name="proximo_pag"
+              value={formData.proximo_pag}
+              onChange={handleChange}
+              style={{
+                width: '100%',
+                padding: '0.6rem',
+                border: '1px solid #e6eef2',
+                borderRadius: '8px',
+                backgroundColor: 'white',
+                color: 'var(--text)',
+                fontSize: '1rem',
+                boxSizing: 'border-box'
+              }}
+              required
+            />
+          </div>
+
+          <div style={{ marginBottom: '1.5rem' }}>
+            <label htmlFor="status" style={{ display: 'block', marginBottom: '0.25rem', color: 'var(--muted)', fontSize: '0.9rem' }}>
+              Status
+            </label>
+            <select
+              id="status"
+              name="status"
+              value={formData.status}
+              onChange={handleChange}
+              style={{
+                width: '100%',
+                padding: '0.6rem',
+                border: '1px solid #e6eef2',
+                borderRadius: '8px',
+                backgroundColor: 'white',
+                color: 'var(--text)',
+                fontSize: '1rem',
+                boxSizing: 'border-box'
+              }}
+            >
+              <option value="ativo">Ativo</option>
+              <option value="atrasado">Atrasado</option>
+              <option value="cancelado">Cancelado</option>
+              <option value="free trial">Free Trial</option>
+              <option value="pausado">Pausado</option>
+            </select>
+          </div>
+
+          <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
+            <button
+              type="button"
+              onClick={onClose}
+              style={{
+                padding: '0.6rem 1.2rem',
+                border: '1px solid #e6eef2',
+                borderRadius: '10px',
+                backgroundColor: 'transparent',
+                color: 'var(--text)',
+                cursor: 'pointer',
+                fontSize: '1rem',
+                fontWeight: '600'
+              }}
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="btn btn-primary"
+              style={{
+                padding: '0.6rem 1.2rem',
+                fontSize: '1rem',
+                fontWeight: '600'
+              }}
+            >
+              {loading ? 'Agendando...' : 'Agendar'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 function PainelCliente() {
+  const [showBookingModal, setShowBookingModal] = useState(false);
+  const [agendamentos, setAgendamentos] = useState([]);
+  const [loadingAgendamentos, setLoadingAgendamentos] = useState(true);
+
+  useEffect(() => {
+    loadAgendamentosDoUsuario();
+  }, []);
+
+  async function loadAgendamentosDoUsuario() {
+    try {
+      const usuarioId = localStorage.getItem('usuarioId') || '1';
+      
+      // Tentar carregar do endpoint
+      try {
+        const response = await fetch(`/api/agendamentos?usuario_id=${usuarioId}`);
+        if (response.ok) {
+          const data = await response.json();
+          
+          // Enriquecer com nomes dos estabelecimentos e planos
+          const agendamentosComNome = await Promise.all(
+            (data || []).map(async (ag) => {
+              try {
+                const estab = await api.getEstablishmentById(ag.estabelecimento_id);
+                return {
+                  ...ag,
+                  nome: estab?.nome || estab?.name || 'Estabelecimento',
+                  plano_nome: getNomePlano(ag.plano_id)
+                };
+              } catch {
+                return {
+                  ...ag,
+                  nome: 'Estabelecimento',
+                  plano_nome: getNomePlano(ag.plano_id)
+                };
+              }
+            })
+          );
+          
+          setAgendamentos(agendamentosComNome);
+          setLoadingAgendamentos(false);
+          return;
+        }
+      } catch (err) {
+        console.warn('Endpoint GET /agendamentos não disponível, usando cache local');
+      }
+      
+      // Se não conseguir do backend, tentar sessionStorage
+      const cachedAgendamentos = sessionStorage.getItem('agendamentos');
+      if (cachedAgendamentos) {
+        const parsed = JSON.parse(cachedAgendamentos);
+        // Garantir que plano_nome está presente
+        const comNomePlano = parsed.map(ag => ({
+          ...ag,
+          plano_nome: ag.plano_nome || getNomePlano(ag.plano_id)
+        }));
+        setAgendamentos(comNomePlano);
+      }
+    } catch (err) {
+      console.error('Erro ao carregar agendamentos:', err);
+      setAgendamentos([]);
+    } finally {
+      setLoadingAgendamentos(false);
+    }
+  }
+
   function handleView(shop) {
     alert(`Abrindo detalhes de: ${shop.name}\n\nEndereço: ${shop.address}\nAvaliação: ${shop.rating}`);
   }
+
+  const handleBookingSubmit = async (formData) => {
+    try {
+      const usuarioId = localStorage.getItem('usuarioId') || '1';
+      const estabId = parseInt(formData.estabelecimento_id);
+      const payload = {
+        usuario_id: parseInt(usuarioId),
+        estabelecimento_id: estabId,
+        plano_id: parseInt(formData.plano_id),
+        proximo_pag: formData.proximo_pag,
+        status: formData.status
+      };
+
+      const response = await fetch('/api/agendamentos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.erro || 'Erro ao criar agendamento');
+      }
+
+      const result = await response.json();
+      
+      // Buscar nome do estabelecimento
+      const estab = await api.getEstablishmentById(estabId);
+      const nomeEstab = estab?.nome || estab?.name || 'Estabelecimento';
+      
+      const novoAgendamento = { 
+        id: result.id, 
+        ...payload, 
+        nome: nomeEstab,
+        plano_nome: getNomePlano(formData.plano_id)
+      };
+      const agendamentosAtualizados = [...agendamentos, novoAgendamento];
+      
+      setAgendamentos(agendamentosAtualizados);
+      sessionStorage.setItem('agendamentos', JSON.stringify(agendamentosAtualizados));
+      alert('Agendamento criado com sucesso!');
+    } catch (err) {
+      throw err;
+    }
+  };
 
   return (
     <>
       <UserBar />
       <main style={{ padding: '2rem' }}>
-        <h2>Painel do Cliente</h2>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+          <h2>Painel do Cliente</h2>
+          <button
+            onClick={() => setShowBookingModal(true)}
+            style={{
+              width: '50px',
+              height: '50px',
+              borderRadius: '50%',
+              backgroundColor: 'var(--accent)',
+              color: 'white',
+              border: 'none',
+              fontSize: '1.5rem',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 4px 12px rgba(15,118,110,0.3)',
+              transition: 'transform 150ms ease'
+            }}
+            onMouseEnter={(e) => e.target.style.transform = 'scale(1.1)'}
+            onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
+            title="Novo agendamento"
+          >
+            +
+          </button>
+        </div>
+
+        {agendamentos.length > 0 && (
+          <section style={{ marginBottom: '2rem' }}>
+            <h3>Meus Agendamentos</h3>
+            {loadingAgendamentos ? (
+              <div className="loader">Carregando agendamentos...</div>
+            ) : (
+              <div style={{ display: 'grid', gap: '1rem' }}>
+                {agendamentos.map((ag) => (
+                  <div
+                    key={ag.id}
+                    style={{
+                      padding: '1rem',
+                      backgroundColor: 'var(--surface)',
+                      border: '1px solid #e6eef2',
+                      borderRadius: '10px',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
+                    }}
+                  >
+                    <p><strong>Estabelecimento:</strong> {ag.nome}</p>
+                    <p><strong>Plano:</strong> {ag.plano_nome}</p>
+                    <p><strong>Data/Hora:</strong> {new Date(ag.proximo_pag).toLocaleString('pt-BR')}</p>
+                    <p><strong>Status:</strong> {ag.status}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
+
         <ShopsList onView={handleView} />
+
+        <BookingModal
+          isOpen={showBookingModal}
+          onClose={() => setShowBookingModal(false)}
+          onSubmit={handleBookingSubmit}
+        />
       </main>
     </>
   );
